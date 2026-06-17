@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Patient - Digital Twin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- TOPBAR: déconnexion + changer mot de passe -->
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home">🏠 Accueil</a>
+        <span class="topbar-user">👤 {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link">🔑 Changer mot de passe</a>
+        <a href="/logout" class="topbar-link-danger">🚪 Déconnexion</a>
+    </div>
+<div class="container">
+        <div class="main-card fade-in">
+
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>INSCRIPTION PATIENT</h1>
+                    <span>Créer un nouveau dossier médical</span>
+                </div>
+            </div>
+
+            <div class="modern-tabs">
+                <button class="tab" onclick="window.location.href='/'">📊 RISK</button>
+                <button class="tab" onclick="window.location.href='/ecg'">⚡ ECG</button>
+                <button class="tab" onclick="window.location.href='/xray'">🔬 RADIO</button>
+                <button class="tab" onclick="window.location.href='/doctor-dashboard'">👨‍⚕️ DASHBOARD</button>
+                <button class="tab tab-active">➕ NOUVEAU PATIENT</button>
+            </div>
+
+            <div class="content">
+                <div class="section-title">
+                    <h2>Informations du patient</h2>
+                </div>
+
+                <form action="/register-patient" method="POST">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nom complet *</label>
+                            <input type="text" name="full_name" class="form-input" required placeholder="Jean Dupont">
+                        </div>
+                        <div class="form-group">
+                            <label>Date de naissance *</label>
+                            <input type="date" name="birth_date" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" name="phone" class="form-input" placeholder="+212 6XX XX XX XX">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" class="form-input" placeholder="patient@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" name="address" class="form-input" placeholder="Rue, Ville">
+                        </div>
+                        <div class="form-group">
+                            <label>Groupe sanguin</label>
+                            <select name="blood_type" class="form-input">
+                                <option value="">Non renseigné</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Allergies connues</label>
+                            <input type="text" name="allergies" class="form-input" placeholder="Médicaments, aliments...">
+                        </div>
+                        <div class="form-group">
+                            <label>Médecin traitant</label>
+                            <input type="text" name="doctor" class="form-input"
+                                   value="{{ current_user.name }}" readonly
+                                   style="background:#f8fafc; color:var(--text-soft); cursor:not-allowed;">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Sécurité sociale</label>
+                            <input type="text" name="ssn" class="form-input" placeholder="1 99 01 01 123 456 78">
+                        </div>
+                    </div>
+
+                    <div class="navigation-buttons" style="margin-top:50px;">
+                        <button type="submit" class="btn-primary btn-large">
+                            ✅ Créer le dossier patient
+                        </button>
+                        <a href="/" class="btn-secondary btn-large">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

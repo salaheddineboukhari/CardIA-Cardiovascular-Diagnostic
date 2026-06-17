@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats Simulation - Digital Twin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        window.basePatientData       = {{ base_patient|tojson }};
+        window.modificationsData     = {{ modifications|tojson }};
+        window.resultData            = {{ result|tojson }};
+        window.baseResultData        = {{ base_result|tojson }};
+        window.improvementData       = {{ improvement|tojson }};
+        window.baseRiskProbability   = {{ base_result.probability }};
+        window.simulatedRiskProbability = {{ result.probability }};
+    </script>
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container">
+        <div class="main-card">
+
+            <!-- HEADER -->
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>RÉSULTATS DE SIMULATION</h1>
+                    <span>Impact des modifications sur le risque cardiovasculaire - Variables UCI</span>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="modern-tabs">
+                <button class="tab" onclick="window.location.href='/'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE</button>
+                <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> SIMULATION</button>
+                <button class="tab" onclick="window.location.href='/ecg'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> ECG</button>
+                <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> RADIOGRAPHIE</button>
+                <button class="tab" onclick="window.location.href='/doctor-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> TABLEAU DE BORD</button>
+            </div>
+
+            <div class="content">
+
+                <!-- COMPARAISON RISQUE -->
+                <div class="metrics-container" style="margin-bottom:32px;">
+                    <div class="metric-card" style="text-align:center;">
+                        <div class="metric-title">RISQUE INITIAL</div>
+                        <div class="metric-value" style="color:{% if base_result.probability > 0.6 %}var(--rose){% elif base_result.probability > 0.3 %}var(--amber){% else %}var(--emerald){% endif %};">
+                            {{ "%.1f"|format(base_result.probability * 100) }}%
+                        </div>
+                        <span class="risk-badge risk-{{ base_result.risk_level|lower }}" style="margin-top:8px; display:inline-block;">
+                            {{ base_result.risk_level }}
+                        </span>
+                    </div>
+
+                    <div class="metric-card" style="text-align:center; background:linear-gradient(135deg,var(--primary-light),#f0fdf9);">
+                        <div class="metric-title">VARIATION</div>
+                        <div class="metric-value" style="color:{% if improvement > 0 %}var(--emerald){% elif improvement < 0 %}var(--rose){% else %}var(--text-muted){% endif %}; font-size:32px;">
+                            {% if improvement > 0 %}−{{ "%.1f"|format(improvement * 100) }}%
+                            {% elif improvement < 0 %}+{{ "%.1f"|format(improvement * -100) }}%
+                            {% else %}0%{% endif %}
+                        </div>
+                        <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
+                            {% if improvement > 0 %}Réduction du risque
+                            {% elif improvement < 0 %}Augmentation du risque
+                            {% else %}Pas de changement{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="metric-card" style="text-align:center;">
+                        <div class="metric-title">RISQUE SIMULÉ</div>
+                        <div class="metric-value" style="color:{% if result.probability > 0.6 %}var(--rose){% elif result.probability > 0.3 %}var(--amber){% else %}var(--emerald){% endif %};">
+                            {{ "%.1f"|format(result.probability * 100) }}%
+                        </div>
+                        <span class="risk-badge risk-{{ result.risk_level|lower }}" style="margin-top:8px; display:inline-block;">
+                            {{ result.risk_level }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ALERTE -->
+                {% if improvement > 0 %}
+                <div class="alert alert-success" style="margin-bottom:28px;">
+                    <strong>Réduction du risque de {{ "%.1f"|format(improvement * 100) }}% !</strong>
+                    Les modifications proposées réduisent votre risque cardiovasculaire.
+                </div>
+                {% elif improvement < 0 %}
+                <div class="alert alert-danger" style="margin-bottom:28px;">
+                    <strong>Attention :</strong> Ces modifications augmentent le risque de {{ "%.1f"|format(improvement * -100) }}%.
+                </div>
+                {% else %}
+                <div class="alert alert-warning" style="margin-bottom:28px;">
+                    <strong>Pas de changement significatif</strong> - essayez d'autres modifications.
+                </div>
+                {% endif %}
+
+                <!-- GRAPHIQUE COMPARATIF -->
+                <div class="chart-wrapper" style="margin-bottom:32px;">
+                    <h3>Comparaison des risques</h3>
+                    <canvas id="comparisonChart" width="400" height="180"></canvas>
+                </div>
+
+                <!-- MODIFICATIONS APPLIQUÉES -->
+                <div class="section-title"><h2>MODIFICATIONS APPLIQUÉES</h2></div>
+                <div class="table-container" style="margin-bottom:32px;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Paramètre UCI</th>
+                                <th>Valeur initiale</th>
+                                <th>Nouvelle valeur</th>
+                                <th>Impact</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in modifications.items() %}
+                            <tr>
+                                <td>
+                                    {% if key == 'trestbps' %}Tension au repos (mmHg)
+                                    {% elif key == 'chol' %}Cholestérol (mg/dL)
+                                    {% elif key == 'thalach' %}FC maximale (bpm)
+                                    {% elif key == 'oldpeak' %}Dépression ST (oldpeak)
+                                    {% elif key == 'exang' %}Angine d'effort
+                                    {% elif key == 'cp' %}Type douleur thoracique
+                                    {% elif key == 'fbs' %}Glycémie à jeun > 120
+                                    {% elif key == 'slope' %}Pente segment ST
+                                    {% else %}{{ key }}{% endif %}
+                                </td>
+                                <td style="color:var(--text-muted);">
+                                    {% if key == 'exang' %}{% if base_patient[key] == 1 %}Oui{% else %}Non{% endif %}
+                                    {% elif key == 'fbs' %}{% if base_patient[key] == 1 %}Oui{% else %}Non{% endif %}
+                                    {% elif key == 'cp' %}Type {{ base_patient[key] }}
+                                    {% elif key == 'slope' %}{% if base_patient[key] == 1 %}Montante{% elif base_patient[key] == 2 %}Plate{% else %}Descendante{% endif %}
+                                    {% else %}{{ base_patient[key] }}{% endif %}
+                                </td>
+                                <td style="color:var(--primary); font-weight:600;">
+                                    {% if key == 'exang' %}{% if value == 1 %}Oui{% else %}Non{% endif %}
+                                    {% elif key == 'fbs' %}{% if value == 1 %}Oui{% else %}Non{% endif %}
+                                    {% elif key == 'cp' %}Type {{ value }}
+                                    {% elif key == 'slope' %}{% if value == 1 %}Montante{% elif value == 2 %}Plate{% else %}Descendante{% endif %}
+                                    {% else %}{{ value }}{% endif %}
+                                </td>
+                                <td>
+                                    {% if key == 'trestbps' and value < base_patient[key] %}
+                                        <span style="color:var(--emerald);">↓ Favorable</span>
+                                    {% elif key == 'chol' and value < base_patient[key] %}
+                                        <span style="color:var(--emerald);">↓ Favorable</span>
+                                    {% elif key == 'thalach' and value > base_patient[key] %}
+                                        <span style="color:var(--emerald);">↑ Favorable</span>
+                                    {% elif key == 'oldpeak' and value < base_patient[key] %}
+                                        <span style="color:var(--emerald);">↓ Favorable</span>
+                                    {% elif key == 'exang' and value == 0 and base_patient[key] == 1 %}
+                                        <span style="color:var(--emerald);">Favorable</span>
+                                    {% else %}
+                                        <span style="color:var(--text-muted);">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BOUTONS -->
+                <div class="navigation-buttons">
+                    <a href="/simulate" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                        Nouvelle simulation
+                    </a>
+                    <a href="/ecg" class="btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg>
+                        Analyse ECG
+                    </a>
+                    <a href="/" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Nouvelle analyse
+                    </a>
+                    <button onclick="downloadSimulationReport()" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Télécharger le rapport
+                    </button>
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /main-card -->
+    </div><!-- /container -->
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Risque initial', 'Risque simulé'],
+                datasets: [{
+                    label: 'Probabilité de risque (%)',
+                    data: [
+                        (window.baseRiskProbability * 100).toFixed(1),
+                        (window.simulatedRiskProbability * 100).toFixed(1)
+                    ],
+                    backgroundColor: [
+                        window.baseRiskProbability > 0.6 ? 'rgba(225,29,72,0.7)' :
+                        window.baseRiskProbability > 0.3 ? 'rgba(217,119,6,0.7)' : 'rgba(5,150,105,0.7)',
+                        window.simulatedRiskProbability > 0.6 ? 'rgba(225,29,72,0.7)' :
+                        window.simulatedRiskProbability > 0.3 ? 'rgba(217,119,6,0.7)' : 'rgba(5,150,105,0.7)',
+                    ],
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: { label: ctx => `${ctx.raw}%` }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100,
+                         ticks: { callback: v => v + '%' } }
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>

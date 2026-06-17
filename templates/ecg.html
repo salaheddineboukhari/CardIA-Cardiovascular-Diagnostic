@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse ECG - Digital Twin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .upload-area {
+            border: 3px dashed #0ea5a4;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #14b8a6;
+            background: #ccfbf1;
+            transform: scale(1.01);
+        }
+        .upload-area .drop-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .upload-area .drop-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        .upload-area .drop-sub {
+            font-size: 13px;
+            color: #64748b;
+        }
+        .result-card {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .badge-risk {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .badge-Normal { background: #d4edda; color: #155724; }
+        .badge-Supraventricular { background: #fff3cd; color: #856404; }
+        .badge-Ventricular { background: #f8d7da; color: #721c24; }
+        .badge-Fusion { background: #fff3cd; color: #856404; }
+        .badge-Unclassifiable { background: #e2e3e5; color: #383d41; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .navigation-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .clinical-data {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+   <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container mt-4">
+        <div class="main-card">
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>ANALYSE ECG <span>Deep Learning</span></h1>
+                    <div class="subtitle">Détection automatique des arythmies cardiaques</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Navigation Tabs -->
+                <div class="modern-tabs">
+                    {% if current_user.is_doctor() %}
+                    <button class="tab" onclick="window.location.href='/'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE</button>
+                    <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> ECG</button>
+                    <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> RADIOGRAPHIE</button>
+                    <button class="tab" onclick="window.location.href='/doctor-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> TABLEAU DE BORD</button>
+                    {% else %}
+                    <!-- Patient : MON RISQUE - affiché seulement si aucune analyse n'existe encore -->
+                    {% if not existing_risk %}
+                    <button class="tab" onclick="window.location.href='/patient-risk'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> MON RISQUE</button>
+                    {% endif %}
+                    <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> MON ECG</button>
+                    <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> MA RADIOGRAPHIE</button>
+                    <button class="tab" onclick="window.location.href='/patient-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MON ESPACE</button>
+                    {% endif %}
+                </div>
+
+                <!-- Tabs internes ECG -->
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <button class="btn-secondary" onclick="showTab('upload')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg> UPLOAD FICHIER</button>
+                    <button class="btn-secondary" onclick="showTab('demo')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> SIGNAL DÉMO</button>
+                    <button class="btn-secondary" onclick="showTab('info')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> INTERPRÉTATION</button>
+                </div>
+
+                <!-- Sélection du patient (médecin) ou info patient connecté -->
+                {% if current_user.is_doctor() %}
+                <div class="form-group">
+                    <label> PATIENT *</label>
+                    <div class="d-flex gap-2">
+                        <select id="patientSelect" class="form-select" required style="flex:1;">
+                            <option value="">-- Sélectionner un patient --</option>
+                            {% for patient in patients_list %}
+                                <option value="{{ patient.full_name }}" data-birth="{{ patient.birth_date }}">
+                                    {{ patient.full_name }}
+                                    {% if patient.birth_date %}({{ patient.birth_date[:4] }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn-secondary" onclick="window.location.href='/register-patient'" title="Nouveau patient" style="padding: 0 15px;">➕</button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <div style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px;">
+                        <span style="font-size:1.4rem;"></span>
+                        <div>
+                            <div style="font-weight:600; color:#0369a1;">{{ current_user.name }}</div>
+                            <div style="font-size:0.8rem; color:#64748b;">Patient connecté - analyse enregistrée automatiquement</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="patientSelect" value="{{ current_user.name }}">
+                </div>
+                {% endif %}
+
+                <!-- Affichage des dernières données cliniques -->
+                <div id="clinicalDataDisplay" class="clinical-data" style="display:none;">
+                    <h5> Dernières données cliniques</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Âge</small>
+                            <div><strong id="displayAge">-</strong> ans</div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Tension artérielle</small>
+                            <div><strong id="displayBP">-</strong> mmHg</div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Cholestérol</small>
+                            <div><strong id="displayChol">-</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Glycémie</small>
+                            <div><strong id="displayGluc">-</strong></div>
+                        </div>
+                    </div>
+                    <small class="text-muted"> Données de la dernière consultation risque</small>
+                </div>
+
+                <!-- Onglet Upload -->
+                <div id="uploadTab" class="tab-content">
+                    <div class="upload-area" id="dropZone" onclick="document.getElementById('ecgFile').click()">
+                        <span class="drop-icon"></span>
+                        <div class="drop-title">Glissez-déposez votre fichier ECG ici</div>
+                        <div class="drop-sub">ou cliquez pour sélectionner</div>
+                        <input type="file" id="ecgFile" accept=".csv" style="display:none">
+                        <div style="margin-top:20px;">
+                            <button class="btn-secondary" onclick="event.stopPropagation(); document.getElementById('ecgFile').click()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;" ><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg> Choisir un fichier CSV
+                            </button>
+                        </div>
+                        <p class="text-muted mt-3"><small>Format: 187 valeurs séparées par des virgules</small></p>
+                    </div>
+                </div>
+
+                <!-- Onglet Demo -->
+                <div id="demoTab" class="tab-content" style="display:none;">
+                    <div class="demo-section">
+                        <h3>Signal ECG d'exemple</h3>
+                        <div class="chart-container">
+                            <canvas id="ecgCanvas" width="800" height="250"></canvas>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn-primary" onclick="loadNormalSignal()">Signal Normal</button>
+                            <button class="btn-secondary" onclick="loadAnormalSignal()">Signal Anormal</button>
+                            <button class="btn-primary" onclick="analyzeCurrentSignal()">Analyser</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Onglet Info -->
+                <div id="infoTab" class="tab-content" style="display:none;">
+                    <div class="info-section">
+                        <h3>Interprétation des classes ECG</h3>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <h5><span class="badge-risk badge-Normal">Normal</span></h5>
+                                        <p>Rythme cardiaque normal. Onde P présente, QRS normal.</p>
+                                    </div>
+                                </div>
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <h5><span class="badge-risk badge-Supraventricular"> Supraventricular</span></h5>
+                                        <p>Battement prématuré des oreillettes. Généralement bénin.</p>
+                                    </div>
+                                </div>
+                                <div class="card mb-2">
+                                    <div class-card-body>
+                                        <h5><span class="badge-risk badge-Ventricular"> Ventricular</span></h5>
+                                        <p>Contraction ventriculaire prématurée. Peut être grave.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <h5><span class="badge-risk badge-Fusion"> Fusion</span></h5>
+                                        <p>Fusion d'un battement normal et ventriculaire.</p>
+                                    </div>
+                                </div>
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <h5><span class="badge-risk badge-Unclassifiable"> Unclassifiable</span></h5>
+                                        <p>Signal difficile à classifier.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Résultats -->
+                <div id="resultsSection" class="result-card" style="display:none;">
+                    <h3> Résultat de l'analyse</h3>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <h5>Diagnostic</h5>
+                                <div class="metric-value" id="resultClass"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <h5>Confiance</h5>
+                                <div class="metric-value" id="resultConfidence"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h5> Conseil clinique</h5>
+                        <p id="clinicalAdvice"></p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h5> Probabilités par classe</h5>
+                        <canvas id="probChart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h5> Composantes ECG</h5>
+                        <div id="ecgComponents"></div>
+                    </div>
+                    
+                    <div class="navigation-buttons">
+                        <button class="btn-secondary" onclick="location.reload()"> Nouvelle analyse</button>
+                        <button class="btn-primary" onclick="window.location.href='/'"> Retour à l'accueil</button>
+                    </div>
+                </div>
+
+                <div class="footer-note mt-4">
+                    <p> Cet outil est une aide au diagnostic et ne remplace pas un avis médical professionnel.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentSignal = null;
+        let ecgChart = null;
+        let probChart = null;
+        
+        // Données cliniques des patients (depuis le backend)
+        const lastRiskData = {{ last_risk_data|tojson }};
+
+        // Gestion des onglets ECG
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+        }
+
+        // Mise à jour de l'affichage des données cliniques
+        function updateClinicalData(patientName) {
+            const data = lastRiskData[patientName];
+            const displayDiv = document.getElementById('clinicalDataDisplay');
+            
+            if (data) {
+                displayDiv.style.display = 'block';
+                document.getElementById('displayAge').textContent = data.age || '-';
+                document.getElementById('displayBP').textContent = data.ap_hi ? `${data.ap_hi}/${data.ap_lo}` : '-';
+                
+                const cholMap = {1: 'Normal', 2: 'Élevé', 3: 'Très élevé'};
+                document.getElementById('displayChol').textContent = cholMap[data.cholesterol] || '-';
+                
+                const glucMap = {1: 'Normale', 2: 'Élevée', 3: 'Très élevée'};
+                document.getElementById('displayGluc').textContent = glucMap[data.gluc] || '-';
+            } else {
+                displayDiv.style.display = 'none';
+            }
+        }
+
+        // Charger signal normal
+        function loadNormalSignal() {
+            const signal = [];
+            for (let i = 0; i < 187; i++) {
+                signal.push(Math.sin(2 * Math.PI * 1.5 * i / 187) + (Math.random() - 0.5) * 0.1);
+            }
+            currentSignal = signal;
+            drawECG(signal);
+        }
+
+        // Charger signal anormal
+        function loadAnormalSignal() {
+            const signal = [];
+            for (let i = 0; i < 187; i++) {
+                let val = Math.sin(2 * Math.PI * 1.5 * i / 187);
+                if (i > 80 && i < 100) {
+                    val = val + Math.sin(2 * Math.PI * 5 * i / 187) * 1.5;
+                }
+                signal.push(val + (Math.random() - 0.5) * 0.2);
+            }
+            currentSignal = signal;
+            drawECG(signal);
+        }
+
+        // Dessiner le signal ECG
+        function drawECG(signal) {
+            const ctx = document.getElementById('ecgCanvas').getContext('2d');
+            
+            if (ecgChart) ecgChart.destroy();
+            
+            ecgChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: signal.length}, (_, i) => i),
+                    datasets: [{
+                        label: 'Signal ECG',
+                        data: signal,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Analyser le signal actuel
+        function analyzeCurrentSignal() {
+            const patientName = document.getElementById('patientSelect').value;
+            if (!patientName) {
+                alert(' Veuillez sélectionner un patient');
+                return;
+            }
+            
+            if (!currentSignal) {
+                alert(' Veuillez d\'abord charger un signal');
+                return;
+            }
+            
+            fetch('/analyze-ecg', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    signal: currentSignal,
+                    patient_name: patientName 
+                })
+            })
+            .then(response => response.json())
+            .then(displayResults)
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'analyse');
+            });
+        }
+
+        // Afficher les résultats
+        function displayResults(data) {
+            if (data.error) {
+                alert('Erreur: ' + data.error);
+                return;
+            }
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultClass').innerHTML = `${data.class_icon} ${data.class_name}`;
+            document.getElementById('resultConfidence').innerHTML = `${data.probability.toFixed(1)}%`;
+            document.getElementById('clinicalAdvice').innerHTML = data.clinical_advice;
+            
+            // Composantes ECG
+            const componentsDiv = document.getElementById('ecgComponents');
+            componentsDiv.innerHTML = '<ul class="list-group">';
+            for (const [comp, val] of Object.entries(data.ecg_components)) {
+                componentsDiv.innerHTML += `<li class="list-group-item"><strong>${comp}:</strong> ${val}</li>`;
+            }
+            componentsDiv.innerHTML += '</ul>';
+            
+            // Graphique des probabilités
+            const probCtx = document.getElementById('probChart').getContext('2d');
+            if (probChart) probChart.destroy();
+            
+            const classes = Object.keys(data.all_probabilities);
+            const probs = Object.values(data.all_probabilities).map(p => p * 100);
+            
+            probChart = new Chart(probCtx, {
+                type: 'bar',
+                data: {
+                    labels: classes,
+                    datasets: [{
+                        label: 'Probabilité (%)',
+                        data: probs,
+                        backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#fd7e14', '#6c757d'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+            
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Upload de fichier
+        document.getElementById('ecgFile').addEventListener('change', function(e) {
+            const patientName = document.getElementById('patientSelect').value;
+            if (!patientName) {
+                alert(' Veuillez d\'abord sélectionner un patient');
+                this.value = '';
+                return;
+            }
+            
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                const values = [];
+                for (let line of lines) {
+                    const nums = line.split(',').map(Number);
+                    values.push(...nums);
+                }
+                const signal = values.slice(0, 187);
+                if (signal.length < 187) {
+                    alert('Fichier invalide: besoin de 187 valeurs');
+                    return;
+                }
+                currentSignal = signal;
+                drawECG(signal);
+                analyzeCurrentSignal();
+            };
+            reader.readAsText(file);
+        });
+
+        // Drag & drop
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#3b82f6';
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = '#dee2e6';
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#dee2e6';
+                
+                const patientName = document.getElementById('patientSelect').value;
+                if (!patientName) {
+                    alert(' Veuillez d\'abord sélectionner un patient');
+                    return;
+                }
+                
+                const file = e.dataTransfer.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const values = e.target.result.split(',').map(Number);
+                    const signal = values.slice(0, 187);
+                    currentSignal = signal;
+                    drawECG(signal);
+                    analyzeCurrentSignal();
+                };
+                reader.readAsText(file);
+            });
+        }
+        
+        // Sélection du patient
+        document.getElementById('patientSelect').addEventListener('change', function() {
+            updateClinicalData(this.value);
+        });
+        
+        // Initialisation
+        loadNormalSignal();
+    </script>
+</body>
+</html>

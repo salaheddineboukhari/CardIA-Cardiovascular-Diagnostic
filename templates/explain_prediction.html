@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explication - Digital Twin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container">
+        <div class="main-card">
+
+            <!-- HEADER -->
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>EXPLICATION DE LA PRÉDICTION</h1>
+                    <span>Analyse SHAP - Facteurs d'influence sur le risque cardiovasculaire</span>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="modern-tabs">
+                <button class="tab" onclick="window.location.href='/'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE</button>
+                <button class="tab" onclick="window.location.href='/simulate'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> SIMULATION</button>
+                <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> EXPLICATION</button>
+            </div>
+
+            <div class="content">
+
+                <!-- RÉSUMÉ RISQUE -->
+                <div class="metrics-container" style="margin-bottom:32px;">
+                    <div class="metric-card">
+                        <div class="metric-title">NIVEAU DE RISQUE</div>
+                        <div style="margin-top:12px;">
+                            <span class="risk-badge risk-{{ result.risk_level|lower }}">
+                                {{ result.risk_level }} ({{ "%.1f"|format(result.probability * 100) }}%)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">MODÈLE</div>
+                        <div style="font-size:13px; color:var(--text-secondary); margin-top:8px; line-height:1.6;">
+                            LR Optuna<br>
+                            UCI 4 bases<br>
+                            AUC 0.86
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FACTEURS D'INFLUENCE -->
+                <div class="section-title">
+                    <h2>FACTEURS LES PLUS INFLUENTS (SHAP)</h2>
+                    <p class="section-description">Les paramètres qui contribuent le plus à votre prédiction</p>
+                </div>
+
+                <div style="margin-bottom:32px;">
+                    {% for feature, importance in top_features %}
+                    <div style="margin-bottom:14px; background:var(--bg-card-2); border:1px solid var(--border); border-radius:var(--r-md); padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:600; color:var(--text-primary); font-family:var(--font-display);">{{ feature }}</span>
+                            <span style="font-size:12px; color:var(--text-muted); font-family:var(--font-mono);">{{ "%.3f"|format(importance) }}</span>
+                        </div>
+                        <div style="height:8px; background:var(--bg-elevated); border-radius:var(--r-full); overflow:hidden;">
+                            <div style="height:100%; width:{{ [importance * 200, 100]|min }}%; border-radius:var(--r-full);
+                                background:{% if importance > 0.3 %}linear-gradient(90deg,var(--rose),#fb7185){% elif importance > 0.1 %}linear-gradient(90deg,var(--amber),#fbbf24){% else %}linear-gradient(90deg,var(--primary),#2dd4bf){% endif %};
+                                transition:width 0.6s ease;"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- GRAPHIQUE SHAP -->
+                <div class="chart-wrapper" style="margin-bottom:32px;">
+                    <h3>Analyse d'impact des variables (SHAP)</h3>
+                    <canvas id="shapChart" width="400" height="280"></canvas>
+                </div>
+
+                <!-- EXPLICATIONS DÉTAILLÉES -->
+                <div class="section-title">
+                    <h2>EXPLICATIONS CLINIQUES</h2>
+                </div>
+                <div style="margin-bottom:32px;">
+                    {% for explanation in explanations %}
+                    <div style="display:flex; gap:12px; padding:14px 18px; margin-bottom:10px;
+                                background:var(--bg-card-2); border:1px solid var(--border);
+                                border-left:4px solid var(--primary); border-radius:0 var(--r-md) var(--r-md) 0;">
+                        <div style="color:var(--primary); font-weight:700; flex-shrink:0;">•</div>
+                        <div style="color:var(--text-secondary); font-size:14px;">{{ explanation }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- RECOMMANDATIONS UCI -->
+                <div class="section-title">
+                    <h2>CE QUE VOUS POUVEZ AMÉLIORER</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin-bottom:32px;">
+
+                    {% if patient.trestbps > 140 %}
+                    <div style="background:var(--bg-card-2); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px;">
+                        <div style="font-size:24px; margin-bottom:10px;">💧</div>
+                        <h4 style="color:var(--text-primary); font-family:var(--font-display); margin-bottom:8px;">Réduire la tension artérielle</h4>
+                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">Tension au repos : {{ patient.trestbps }} mmHg (cible &lt; 130)</p>
+                        <ul style="font-size:13px; color:var(--text-secondary); margin-left:16px;">
+                            <li>Marche rapide 30 min/jour</li>
+                            <li>Réduire le sel à &lt; 5g/jour</li>
+                            <li>Régime DASH</li>
+                        </ul>
+                        <div style="font-size:12px; color:var(--emerald); margin-top:10px; font-weight:600;">Impact estimé : −15% de risque</div>
+                    </div>
+                    {% endif %}
+
+                    {% if patient.chol > 200 %}
+                    <div style="background:var(--bg-card-2); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px;">
+                        <div style="font-size:24px; margin-bottom:10px;">🥗</div>
+                        <h4 style="color:var(--text-primary); font-family:var(--font-display); margin-bottom:8px;">Améliorer le cholestérol</h4>
+                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">Cholestérol : {{ patient.chol }} mg/dL (cible &lt; 200)</p>
+                        <ul style="font-size:13px; color:var(--text-secondary); margin-left:16px;">
+                            <li>Oméga-3 (poissons gras 2×/semaine)</li>
+                            <li>Réduire graisses saturées</li>
+                            <li>Exercice aérobie 3×/semaine</li>
+                        </ul>
+                        <div style="font-size:12px; color:var(--emerald); margin-top:10px; font-weight:600;">Impact estimé : −12% de risque</div>
+                    </div>
+                    {% endif %}
+
+                    {% if patient.exang == 1 %}
+                    <div style="background:var(--bg-card-2); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px;">
+                        <div style="font-size:24px; margin-bottom:10px;">❤️</div>
+                        <h4 style="color:var(--text-primary); font-family:var(--font-display); margin-bottom:8px;">Angine d'effort</h4>
+                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">Douleur thoracique à l'effort détectée</p>
+                        <ul style="font-size:13px; color:var(--text-secondary); margin-left:16px;">
+                            <li>Épreuve d'effort cardiologique</li>
+                            <li>Éviter efforts intenses</li>
+                            <li>Suivi par Holter ECG</li>
+                        </ul>
+                        <div style="font-size:12px; color:var(--emerald); margin-top:10px; font-weight:600;">Impact estimé : −15% de risque</div>
+                    </div>
+                    {% endif %}
+
+                    {% if patient.oldpeak > 1 %}
+                    <div style="background:var(--bg-card-2); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px;">
+                        <div style="font-size:24px; margin-bottom:10px;">📉</div>
+                        <h4 style="color:var(--text-primary); font-family:var(--font-display); margin-bottom:8px;">Dépression ST élevée</h4>
+                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">Oldpeak : {{ patient.oldpeak }} (cible : 0)</p>
+                        <ul style="font-size:13px; color:var(--text-secondary); margin-left:16px;">
+                            <li>Scintigraphie myocardique</li>
+                            <li>Réduire efforts physiques intenses</li>
+                            <li>Réévaluation cardiologique</li>
+                        </ul>
+                        <div style="font-size:12px; color:var(--emerald); margin-top:10px; font-weight:600;">Impact estimé : −10% de risque</div>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- GRAPHIQUE RADAR UCI -->
+                <div class="chart-wrapper" style="margin-bottom:32px;">
+                    <h3>Profil de santé cardiovasculaire (UCI)</h3>
+                    <canvas id="radarChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- NAVIGATION -->
+                <div class="navigation-buttons">
+                    <a href="/" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Retour aux résultats
+                    </a>
+                    <a href="/simulate" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                        Essayer la simulation
+                    </a>
+                </div>
+
+                <!-- NOTE CLINIQUE -->
+                <div class="footer-note" style="margin-top:32px;">
+                    <span class="api-badge">SHAP - LR OPTUNA</span>
+                    <p class="footer-text">
+                        Cette explication est basée sur l'analyse SHAP (SHapley Additive exPlanations)
+                        du modèle LR Optuna entraîné sur 920 patients UCI.
+                        Consultez toujours un professionnel de santé pour un avis médical personnalisé.
+                    </p>
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /main-card -->
+    </div><!-- /container -->
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const shapValues   = {{ shap_values|tojson }};
+        const featureNames = {{ feature_names|tojson }};
+        const patient      = {{ patient|tojson }};
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // ── Graphique SHAP barres horizontales ──
+            const shapCtx = document.getElementById('shapChart').getContext('2d');
+            new Chart(shapCtx, {
+                type: 'bar',
+                data: {
+                    labels: featureNames.slice(0, 8),
+                    datasets: [{
+                        label: 'Impact sur le risque',
+                        data: shapValues.slice(0, 8),
+                        backgroundColor: shapValues.slice(0, 8).map(v =>
+                            v > 0 ? 'rgba(225,29,72,0.7)' : 'rgba(13,148,136,0.7)'
+                        ),
+                        borderColor: shapValues.slice(0, 8).map(v =>
+                            v > 0 ? '#e11d48' : '#0d9488'
+                        ),
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `Impact : ${ctx.raw.toFixed(3)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // ── Graphique Radar UCI ──
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+
+            // Normalisation variables UCI entre 0 et 1
+            const normalizedValues = [
+                Math.min(patient.age / 80, 1),
+                Math.min(patient.trestbps / 200, 1),
+                Math.min(patient.chol / 400, 1),
+                Math.min(patient.thalach / 220, 1),
+                Math.min(patient.oldpeak / 6, 1),
+                patient.exang || 0,
+                patient.ca / 3,
+            ];
+
+            // Valeurs normales de référence
+            const normalValues = [0.6, 0.65, 0.5, 0.75, 0, 0, 0];
+
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Âge', 'Tension (trestbps)', 'Cholestérol', 'FC max (thalach)', 'Dépression ST', 'Angine effort', 'Vaisseaux (ca)'],
+                    datasets: [{
+                        label: 'Votre profil',
+                        data: normalizedValues,
+                        backgroundColor: 'rgba(13,148,136,0.15)',
+                        borderColor: '#0d9488',
+                        pointBackgroundColor: '#0d9488',
+                        pointBorderColor: '#fff',
+                        pointRadius: 5,
+                    }, {
+                        label: 'Référence normale',
+                        data: normalValues,
+                        backgroundColor: 'rgba(5,150,105,0.05)',
+                        borderColor: '#059669',
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#059669',
+                        pointRadius: 3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(0)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true, max: 1,
+                            ticks: { callback: v => (v * 100) + '%', stepSize: 0.25 },
+                            grid: { color: 'rgba(0,0,0,0.06)' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

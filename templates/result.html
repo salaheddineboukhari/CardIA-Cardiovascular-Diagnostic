@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats - Digital Twin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container">
+        <div class="main-card">
+
+            <!-- HEADER -->
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>RÉSULTATS D'ANALYSE</h1>
+                    <span>Évaluation personnalisée du risque cardiovasculaire - Dataset UCI 4 bases</span>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="modern-tabs">
+                <button class="tab" onclick="window.location.href='/'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE</button>
+                <button class="tab" onclick="window.location.href='/simulate'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> SIMULATION</button>
+                <button class="tab" onclick="window.location.href='/ecg'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> ECG</button>
+                <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> RADIOGRAPHIE</button>
+                {% if current_user.is_doctor() %}
+                <button class="tab" onclick="window.location.href='/doctor-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> TABLEAU DE BORD</button>
+                {% else %}
+                <button class="tab" onclick="window.location.href='/patient-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MON ESPACE</button>
+                {% endif %}
+            </div>
+
+            <div class="content">
+
+                <!-- NOM PATIENT -->
+                <div style="text-align:center; margin-bottom:32px;">
+                    <div style="background:var(--primary-light); display:inline-block; padding:8px 24px; border-radius:var(--r-full); border:1px solid var(--primary-mid);">
+                        <span style="font-weight:600; color:var(--primary);">Patient :</span>
+                        <span style="color:var(--text-primary); margin-left:6px;">{{ patient_name }}</span>
+                    </div>
+                </div>
+
+                <!-- METRICS CARDS -->
+                <div class="metrics-container" style="margin-bottom:32px;">
+                    <div class="metric-card">
+                        <div class="metric-title">NIVEAU DE RISQUE</div>
+                        <div style="margin-top:12px;">
+                            <span class="risk-badge risk-{{ result.risk_level|lower }}">
+                                {{ result.risk_level }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">PROBABILITÉ</div>
+                        <div class="metric-value" style="color:{% if result.probability > 0.6 %}var(--rose){% elif result.probability > 0.3 %}var(--amber){% else %}var(--emerald){% endif %};">
+                            {{ "%.1f"|format(result.probability * 100) }}%
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">STATUT</div>
+                        <div class="metric-value" style="font-size:18px; margin-top:8px; color:{% if result.prediction == 1 %}var(--rose){% else %}var(--emerald){% endif %};">
+                            {% if result.prediction == 1 %}À RISQUE{% else %}SAIN{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JAUGE -->
+                <div class="chart-wrapper" style="text-align:center; margin-bottom:32px;">
+                    <canvas id="riskGauge" width="350" height="140"></canvas>
+                </div>
+
+                <!-- ALERTE -->
+                <div class="alert alert-{% if result.probability < 0.3 %}success{% elif result.probability < 0.6 %}warning{% else %}danger{% endif %}" style="margin-bottom:32px;">
+                    <strong>
+                        {% if result.probability > 0.6 %}Risque élevé détecté ; Consultation médicale recommandée immédiatement.
+                        {% elif result.probability > 0.3 %}Risque modéré ; Surveillance régulière conseillée.
+                        {% else %}Risque faible ; Continuez vos bonnes habitudes !
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <!-- BOUTONS ACTION -->
+                <div class="navigation-buttons" style="margin-bottom:32px;">
+                    <button class="btn-secondary" onclick="showRecommendations()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Recommandations
+                    </button>
+                    <button class="btn-secondary" onclick="downloadReport()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Télécharger le rapport
+                    </button>
+                    {% if current_user.is_doctor() %}
+                    <a href="/simulate" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                        Simuler des améliorations
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- RECOMMANDATIONS (cachées) -->
+                <div id="recommendationsSection" class="hidden" style="margin-bottom:32px;">
+                    <div class="section-title"><h2>Recommandations personnalisées</h2></div>
+                    <div id="recommendationsContent"></div>
+                </div>
+
+                <!-- PARAMÈTRES UCI -->
+                <div class="section-title"><h2>PARAMÈTRES CLINIQUES UCI</h2></div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Paramètre</th>
+                                <th>Valeur</th>
+                                <th>Unité</th>
+                                <th>Référence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Âge</td>
+                                <td>{{ patient.age }}</td>
+                                <td>ans</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Sexe</td>
+                                <td>{% if patient.sex == 1 %}Homme{% else %}Femme{% endif %}</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Type douleur thoracique (cp)</td>
+                                <td>
+                                    {% if patient.cp == 1 %}1 : Angine typique
+                                    {% elif patient.cp == 2 %}2 : Angine atypique
+                                    {% elif patient.cp == 3 %}3 : Douleur non angineuse
+                                    {% else %}4 : Asymptomatique{% endif %}
+                                </td>
+                                <td></td>
+                                <td>Type 1-3</td>
+                            </tr>
+                            <tr>
+                                <td>Tension au repos (trestbps)</td>
+                                <td class="{% if patient.trestbps > 140 %}risk-high{% elif patient.trestbps > 130 %}risk-moderate{% endif %}">
+                                    {{ patient.trestbps }}
+                                </td>
+                                <td>mmHg</td>
+                                <td>&lt; 130</td>
+                            </tr>
+                            <tr>
+                                <td>Cholestérol sérique (chol)</td>
+                                <td class="{% if patient.chol > 240 %}risk-high{% elif patient.chol > 200 %}risk-moderate{% endif %}">
+                                    {{ patient.chol }}
+                                </td>
+                                <td>mg/dL</td>
+                                <td>&lt; 200</td>
+                            </tr>
+                            <tr>
+                                <td>Glycémie à jeun &gt; 120 (fbs)</td>
+                                <td>{% if patient.fbs == 1 %}Oui{% else %}Non{% endif %}</td>
+                                <td></td>
+                                <td>Non</td>
+                            </tr>
+                            <tr>
+                                <td>ECG au repos (restecg)</td>
+                                <td>
+                                    {% if patient.restecg == 0 %}Normal
+                                    {% elif patient.restecg == 1 %}Anomalie ST-T
+                                    {% else %}HVG{% endif %}
+                                </td>
+                                <td></td>
+                                <td>Normal (0)</td>
+                            </tr>
+                            <tr>
+                                <td>FC maximale (thalach)</td>
+                                <td class="{% if patient.thalach < 120 %}risk-high{% endif %}">
+                                    {{ patient.thalach }}
+                                </td>
+                                <td>bpm</td>
+                                <td>{{ 220 - patient.age }} (théorique)</td>
+                            </tr>
+                            <tr>
+                                <td>Angine d'effort (exang)</td>
+                                <td class="{% if patient.exang == 1 %}risk-high{% endif %}">
+                                    {% if patient.exang == 1 %}Oui{% else %}Non{% endif %}
+                                </td>
+                                <td></td>
+                                <td>Non</td>
+                            </tr>
+                            <tr>
+                                <td>Dépression ST (oldpeak)</td>
+                                <td class="{% if patient.oldpeak > 2 %}risk-high{% elif patient.oldpeak > 1 %}risk-moderate{% endif %}">
+                                    {{ patient.oldpeak }}
+                                </td>
+                                <td></td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td>Pente ST (slope)</td>
+                                <td>
+                                    {% if patient.slope == 1 %}1 : Montante
+                                    {% elif patient.slope == 2 %}2 : Plate
+                                    {% else %}3 : Descendante{% endif %}
+                                </td>
+                                <td></td>
+                                <td>Montante (1)</td>
+                            </tr>
+                            <tr>
+                                <td>Vaisseaux colorés (ca)</td>
+                                <td class="{% if patient.ca >= 2 %}risk-high{% elif patient.ca == 1 %}risk-moderate{% endif %}">
+                                    {{ patient.ca }}
+                                </td>
+                                <td></td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td>Thalassémie (thal)</td>
+                                <td>
+                                    {% if patient.thal == 3 %}3 : Normal
+                                    {% elif patient.thal == 6 %}6 : Défaut fixe
+                                    {% else %}7 : Défaut réversible{% endif %}
+                                </td>
+                                <td></td>
+                                <td>Normal (3)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- NAVIGATION -->
+                <div class="navigation-buttons" style="margin-top:32px;">
+                    <a href="/ecg" class="btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg>
+                        Analyse ECG
+                    </a>
+                    <a href="/xray" class="btn-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg>
+                        Radiographie
+                    </a>
+                    {% if current_user.is_doctor() %}
+                    <a href="/" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Nouvelle analyse
+                    </a>
+                    {% else %}
+                    <a href="/patient-risk" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Nouvelle analyse
+                    </a>
+                    {% endif %}
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /main-card -->
+    </div><!-- /container -->
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const patientData = {{ patient|tojson }};
+        const resultData  = {{ result|tojson }};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initRiskGauge(resultData.probability);
+        });
+
+        function showRecommendations() {
+            const section = document.getElementById('recommendationsSection');
+            const content = document.getElementById('recommendationsContent');
+            if (section.classList.contains('hidden')) {
+                fetch('/get-recommendations', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(r => r.json())
+                .then(recommendations => {
+                    content.innerHTML = '';
+                    recommendations.forEach(rec => {
+                        const card = document.createElement('div');
+                        card.style.cssText = 'margin-bottom:12px; padding:16px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-card-2);';
+                        card.innerHTML = `
+                            <h4 style="color:var(--primary);margin-bottom:8px;font-family:var(--font-display);font-size:14px;">${rec.category}</h4>
+                            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">${rec.advice}</p>
+                            <ul style="margin:0 0 8px 20px;font-size:13px;color:var(--text-secondary);">
+                                ${rec.actions.map(a => `<li>${a}</li>`).join('')}
+                            </ul>
+                            <div style="font-size:11px;color:var(--text-muted);border-top:1px solid var(--border-soft);padding-top:6px;margin-top:4px;">
+                                ${rec.expected_improvement} - ${rec.timeframe}
+                            </div>`;
+                        content.appendChild(card);
+                    });
+                    section.classList.remove('hidden');
+                })
+                .catch(() => { content.innerHTML = '<p style="color:var(--text-muted);">Erreur lors du chargement.</p>'; });
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        function downloadReport() {
+            fetch('/generate-report', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+            .then(r => r.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'rapport_cardiovasculaire.pdf';
+                document.body.appendChild(a); a.click();
+                window.URL.revokeObjectURL(url); a.remove();
+            });
+        }
+    </script>
+</body>
+</html>

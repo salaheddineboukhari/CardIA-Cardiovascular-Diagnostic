@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation - Digital Twin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="{% if current_user.is_patient() %}/patient-dashboard{% else %}/{% endif %}" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container">
+        <div class="main-card fade-in">
+
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>SIMULATION</h1>
+                    <span>Modélisation des améliorations cardiovasculaires - Variables UCI</span>
+                </div>
+            </div>
+
+            <div class="modern-tabs">
+                
+                <button class="tab" onclick="window.location.href='/'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE</button>
+                <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> SIMULATION</button>
+                <button class="tab" onclick="window.location.href='/ecg'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> ECG</button>
+                <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> RADIOGRAPHIE</button>
+                <button class="tab" onclick="window.location.href='/doctor-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> TABLEAU DE BORD</button>
+            </div>
+
+            <div class="content">
+                <div class="section-title">
+                    <h2>Paramètres modifiables</h2>
+                    <p class="section-description">Modifiez les paramètres pour simuler l'impact sur le risque cardiovasculaire.</p>
+                </div>
+
+                <form action="/simulate" method="POST">
+                    <div class="form-grid">
+
+                        <!-- TENSION ARTÉRIELLE -->
+                        <div class="form-group">
+                            <label class="form-label">TENSION AU REPOS (mmHg)</label>
+                            <input type="number" name="trestbps"
+                                   value="{{ patient.trestbps }}" min="80" max="260">
+                            <small class="text-muted">Actuelle : {{ patient.trestbps }} mmHg · Normale : &lt; 130</small>
+                        </div>
+
+                        <!-- CHOLESTÉROL -->
+                        <div class="form-group">
+                            <label class="form-label">CHOLESTÉROL (mg/dL)</label>
+                            <input type="number" name="chol"
+                                   value="{{ patient.chol }}" min="100" max="600">
+                            <small class="text-muted">Actuel : {{ patient.chol }} mg/dL · Normal : &lt; 200</small>
+                        </div>
+
+                        <!-- FRÉQUENCE CARDIAQUE MAX -->
+                        <div class="form-group">
+                            <label class="form-label">FRÉQUENCE CARDIAQUE MAX (thalach)</label>
+                            <input type="number" name="thalach"
+                                   value="{{ patient.thalach }}" min="60" max="250">
+                            <small class="text-muted">Actuelle : {{ patient.thalach }} bpm · Max théorique : {{ 220 - patient.age }}</small>
+                        </div>
+
+                        <!-- DÉPRESSION ST -->
+                        <div class="form-group">
+                            <label class="form-label">DÉPRESSION SEGMENT ST (oldpeak)</label>
+                            <input type="number" name="oldpeak"
+                                   value="{{ patient.oldpeak }}" min="0" max="10" step="0.1">
+                            <small class="text-muted">Actuelle : {{ patient.oldpeak }} · Normale : 0</small>
+                        </div>
+
+                        <!-- ANGINE D'EFFORT -->
+                        <div class="form-group">
+                            <label class="form-label">ANGINE INDUITE PAR L'EFFORT (exang)</label>
+                            <select name="exang">
+                                <option value="0" {% if patient.exang == 0 %}selected{% endif %}>Non</option>
+                                <option value="1" {% if patient.exang == 1 %}selected{% endif %}>Oui</option>
+                            </select>
+                        </div>
+
+                        <!-- TYPE DOULEUR -->
+                        <div class="form-group">
+                            <label class="form-label">TYPE DE DOULEUR THORACIQUE (cp)</label>
+                            <select name="cp">
+                                <option value="1" {% if patient.cp == 1 %}selected{% endif %}>1 - Angine typique</option>
+                                <option value="2" {% if patient.cp == 2 %}selected{% endif %}>2 - Angine atypique</option>
+                                <option value="3" {% if patient.cp == 3 %}selected{% endif %}>3 - Douleur non angineuse</option>
+                                <option value="4" {% if patient.cp == 4 %}selected{% endif %}>4 - Asymptomatique</option>
+                            </select>
+                        </div>
+
+                        <!-- GLYCÉMIE -->
+                        <div class="form-group">
+                            <label class="form-label">GLYCÉMIE À JEUN &gt; 120 mg/dL (fbs)</label>
+                            <select name="fbs">
+                                <option value="0" {% if patient.fbs == 0 %}selected{% endif %}>Non (≤ 120 mg/dL)</option>
+                                <option value="1" {% if patient.fbs == 1 %}selected{% endif %}>Oui (&gt; 120 mg/dL)</option>
+                            </select>
+                        </div>
+
+                        <!-- PENTE ST -->
+                        <div class="form-group">
+                            <label class="form-label">PENTE SEGMENT ST (slope)</label>
+                            <select name="slope">
+                                <option value="1" {% if patient.slope == 1 %}selected{% endif %}>1 - Montante</option>
+                                <option value="2" {% if patient.slope == 2 %}selected{% endif %}>2 - Plate</option>
+                                <option value="3" {% if patient.slope == 3 %}selected{% endif %}>3 - Descendante</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="navigation-buttons" style="margin-top:50px;">
+                        <button type="submit" class="btn-primary btn-large">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            Simuler les changements
+                        </button>
+                        <a href="{% if current_user.is_patient() %}/patient-dashboard{% else %}/{% endif %}" class="btn-secondary btn-large" class="btn-secondary btn-large">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Retour
+                        </a>
+                    </div>
+                </form>
+
+                <!-- INFO IMPACTS -->
+                <div style="margin-top:50px; background:var(--bg-card-2); border-radius:var(--r-lg); padding:32px; border:1px solid var(--border);">
+                    <div class="section-title">
+                        <h2>Impact estimé des modifications</h2>
+                    </div>
+                    <div class="sim-info-grid">
+                        <div class="sim-info-item">
+                            <strong>Tension artérielle</strong>
+                            <small>Chaque −10 mmHg ≈ −5% de risque</small>
+                        </div>
+                        <div class="sim-info-item">
+                            <strong>Cholestérol</strong>
+                            <small>Passer sous 200 mg/dL ≈ −8% de risque</small>
+                        </div>
+                        <div class="sim-info-item">
+                            <strong>Fréquence cardiaque max</strong>
+                            <small>FC max élevée = meilleure capacité cardio</small>
+                        </div>
+                        <div class="sim-info-item">
+                            <strong>Dépression ST (oldpeak)</strong>
+                            <small>Réduire à 0 ≈ −12% de risque</small>
+                        </div>
+                        <div class="sim-info-item">
+                            <strong>Angine d'effort</strong>
+                            <small>Absence d'angine ≈ −15% de risque</small>
+                        </div>
+                        <div class="sim-info-item">
+                            <strong>Glycémie à jeun</strong>
+                            <small>Contrôle glycémique ≈ −7% de risque</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

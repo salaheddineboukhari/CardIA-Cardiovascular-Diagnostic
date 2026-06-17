@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiovascular Digital Twin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container">
+        <div class="main-card">
+
+            <!-- HEADER -->
+            <div class="anatomical-header">
+                <div class="header-content">
+                    <h1 class="main-title">DIGITAL TWIN<br>CARDIOVASCULAIRE</h1>
+                    
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="modern-tabs">
+                {% if current_user.is_doctor() %}
+                <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE CARDIOVASCULAIRE</button>
+                <button class="tab" onclick="window.location.href='/ecg'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> ANALYSE ECG</button>
+                <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> RADIOGRAPHIE</button>
+                <button class="tab" onclick="window.location.href='/doctor-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> TABLEAU DE BORD</button>
+                {% else %}
+                <button class="tab tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> MON RISQUE</button>
+                <button class="tab" onclick="window.location.href='/ecg'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> MON ECG</button>
+                <button class="tab" onclick="window.location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> MA RADIOGRAPHIE</button>
+                <button class="tab" onclick="window.location.href='/patient-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MON ESPACE</button>
+                {% endif %}
+            </div>
+
+            <!-- CONTENU -->
+            <div class="content">
+                <div class="section-title">
+                    <h2 class="section-heading">PARAMÈTRES CLINIQUES</h2>
+                    <p class="section-description">
+                        {% if current_user.is_doctor() %}
+                        Saisissez les paramètres cliniques du patient " Dataset UCI 4 bases (Cleveland, Hungarian, Switzerland, Long Beach)".
+                        {% else %}
+                        Vos paramètres cliniques pour une analyse cardiovasculaire personnalisée.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <form action="{% if current_user.is_patient() %}/patient-risk{% else %}/predict{% endif %}" method="POST" id="patientForm">
+                    <div class="form-grid">
+
+                        <!-- PATIENT -->
+                        {% if current_user.is_doctor() %}
+                        <div class="form-group">
+                            <label class="form-label">PATIENT</label>
+                            <div class="input-with-btn">
+                                <select class="form-select" name="patient_name" id="patientSelect" required>
+                                    <option value=""> Sélectionner un patient </option>
+                                    {% for patient in patients_list %}
+                                    <option value="{{ patient.full_name }}" data-birth="{{ patient.birth_date }}">
+                                        {{ patient.full_name }}
+                                        {% if patient.birth_date %}({{ patient.birth_date }}){% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn-icon" id="quickAddBtn" title="Nouveau patient">+</button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="form-group">
+                            <label class="form-label">PATIENT</label>
+                            <div class="patient-identity-box">
+                                <div>
+                                    <div class="identity-name">{{ current_user.name }}</div>
+                                    <div class="identity-sub">Analyse enregistrée sous votre profil</div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="patient_name" id="patientSelect" value="{{ current_user.name }}">
+                            <input type="hidden" name="birth_date" id="birth_date" value="{{ current_user.birth_date if current_user.birth_date else '' }}">
+                        </div>
+                        {% endif %}
+
+                        <!-- AGE -->
+                        <div class="form-group">
+                            <label class="form-label">ÂGE (années)</label>
+                            {% if current_user.is_doctor() %}
+                            <input type="number" class="form-input readonly-field" name="age" id="age" readonly required placeholder="-">
+                            {% else %}
+                            <input type="number" class="form-input readonly-field" name="age" id="age" value="{{ patient_age }}" readonly required>
+                            {% endif %}
+                            <small class="text-muted">Calculé depuis la date de naissance</small>
+                        </div>
+
+                        <!-- SEXE -->
+                        <div class="form-group">
+                            <label class="form-label">SEXE</label>
+                            <select class="form-select" name="sex" required>
+                                <option value="0">Femme</option>
+                                <option value="1" selected>Homme</option>
+                            </select>
+                        </div>
+
+                        <!-- TYPE DE DOULEUR THORACIQUE -->
+                        <div class="form-group">
+                            <label class="form-label">TYPE DE DOULEUR THORACIQUE (cp)</label>
+                            <select class="form-select" name="cp" required>
+                                <option value="1">1 : Angine typique</option>
+                                <option value="2">2 : Angine atypique</option>
+                                <option value="3">3 : Douleur non angineuse</option>
+                                <option value="4" selected>4 : Asymptomatique</option>
+                            </select>
+                            <small class="text-muted">Type 4 = asymptomatique = risque plus élevé</small>
+                        </div>
+
+                        <!-- TENSION ARTÉRIELLE -->
+                        <div class="form-group">
+                            <label class="form-label">TENSION AU REPOS (mmHg)</label>
+                            <input type="number" class="form-input" name="trestbps" min="80" max="260" value="120" required>
+                            <small class="text-muted">Normale : &lt; 130 mmHg</small>
+                        </div>
+
+                        <!-- CHOLESTÉROL -->
+                        <div class="form-group">
+                            <label class="form-label">CHOLESTÉROL SÉRIQUE (mg/dL)</label>
+                            <input type="number" class="form-input" name="chol" min="100" max="600" value="200" required>
+                            <small class="text-muted">Normal : &lt; 200 · Élevé : 200–240 · Très élevé : &gt; 240</small>
+                        </div>
+
+                        <!-- GLYCÉMIE À JEUN -->
+                        <div class="form-group">
+                            <label class="form-label">GLYCÉMIE À JEUN &gt; 120 mg/dL (fbs)</label>
+                            <select class="form-select" name="fbs" required>
+                                <option value="0" selected>Non (≤ 120 mg/dL)</option>
+                                <option value="1">Oui (&gt; 120 mg/dL)</option>
+                            </select>
+                        </div>
+
+                        <!-- ECG REPOS -->
+                        <div class="form-group">
+                            <label class="form-label">RÉSULTATS ECG AU REPOS (restecg)</label>
+                            <select class="form-select" name="restecg" required>
+                                <option value="0" selected>0 : Normal</option>
+                                <option value="1">1 : Anomalie onde ST-T</option>
+                                <option value="2">2 : Hypertrophie ventriculaire gauche</option>
+                            </select>
+                        </div>
+
+                        <!-- FRÉQUENCE CARDIAQUE MAX -->
+                        <div class="form-group">
+                            <label class="form-label">FRÉQUENCE CARDIAQUE MAXIMALE (thalach)</label>
+                            <input type="number" class="form-input" name="thalach" min="60" max="250" value="150" required>
+                            <small class="text-muted">Max théorique ≈ 220 − âge</small>
+                        </div>
+
+                        <!-- ANGINE D'EFFORT -->
+                        <div class="form-group">
+                            <label class="form-label">ANGINE INDUITE PAR L'EFFORT (exang)</label>
+                            <select class="form-select" name="exang" required>
+                                <option value="0" selected>Non</option>
+                                <option value="1">Oui</option>
+                            </select>
+                        </div>
+
+                        <!-- DÉPRESSION ST -->
+                        <div class="form-group">
+                            <label class="form-label">DÉPRESSION SEGMENT ST (oldpeak)</label>
+                            <input type="number" class="form-input" name="oldpeak" min="0" max="10" step="0.1" value="0" required>
+                            <small class="text-muted">Dépression ST induite par l'effort : Normale = 0</small>
+                        </div>
+
+                        <!-- PENTE ST -->
+                        <div class="form-group">
+                            <label class="form-label">PENTE DU SEGMENT ST (slope)</label>
+                            <select class="form-select" name="slope" required>
+                                <option value="1" selected>1 : Montante (Up)</option>
+                                <option value="2">2 : Plate (Flat)</option>
+                                <option value="3">3 : Descendante (Down)</option>
+                            </select>
+                        </div>
+
+                        <!-- VAISSEAUX COLORÉS -->
+                        <div class="form-group">
+                            <label class="form-label">VAISSEAUX COLORÉS PAR FLUOROSCOPIE (ca)</label>
+                            <select class="form-select" name="ca" required>
+                                <option value="0" selected>0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                            <small class="text-muted">0 à 3 vaisseaux majeurs colorés</small>
+                        </div>
+
+                        <!-- THALASSÉMIE -->
+                        <div class="form-group">
+                            <label class="form-label">THALASSÉMIE (thal)</label>
+                            <select class="form-select" name="thal" required>
+                                <option value="3" selected>3 : Normal</option>
+                                <option value="6">6 : Défaut fixe</option>
+                                <option value="7">7 : Défaut réversible</option>
+                            </select>
+                        </div>
+
+                    </div><!-- /form-grid -->
+
+                    {% if current_user.is_doctor() %}
+                    <input type="hidden" name="birth_date" id="birth_date">
+                    {% endif %}
+
+                    <div style="margin-top:50px; text-align:center;">
+                        {% if current_user.is_doctor() %}
+                        <button type="submit" class="btn-primary btn-large">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            Analyser le risque cardiovasculaire
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn-primary btn-large">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            Analyser mon risque cardiovasculaire
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+
+                <div class="footer-note">
+                    <span class="api-badge">LR OPTUNA / UCI 4 BASES</span>
+                    <p class="footer-text">
+                        Modèle entraîné sur 920 patients (Cleveland, Hungarian, Switzerland, Long Beach):
+                        Recall 80.3% · Spécificité 80.0% · AUC 0.86.
+                        Aide à la décision clinique uniquement.
+                    </p>
+                </div>
+            </div><!-- /content -->
+        </div><!-- /main-card -->
+    </div><!-- /container -->
+
+    <!-- MODAL AJOUT RAPIDE PATIENT -->
+    {% if current_user.is_doctor() %}
+    <div id="quickModal" class="quick-modal">
+        <h4>Nouveau patient</h4>
+        <input type="text" id="newPatientName" placeholder="Nom complet *" class="form-input">
+        <input type="date" id="newPatientBirth" class="form-input">
+        <small class="text-muted" style="margin-bottom:16px; display:block;">Date de naissance</small>
+        <div class="modal-buttons">
+            <button class="btn-save" onclick="saveQuickPatient()">Créer</button>
+            <button class="btn-cancel" onclick="closeQuickModal()">Annuler</button>
+        </div>
+    </div>
+    <div id="modalOverlay" class="modal-overlay"></div>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+    function calculateAge(birthDate) {
+        if (!birthDate) return '';
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        if ((today.getMonth() - birth.getMonth()) < 0 ||
+            (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+        return age;
+    }
+
+    const patientSelect = document.getElementById('patientSelect');
+    if (patientSelect && patientSelect.tagName === 'SELECT') {
+        patientSelect.addEventListener('change', function() {
+            const opt   = this.options[this.selectedIndex];
+            const birth = opt.getAttribute('data-birth');
+            const age   = calculateAge(birth);
+            document.getElementById('age').value        = age || '';
+            document.getElementById('birth_date').value = birth || '';
+        });
+    }
+
+    document.getElementById('patientForm').addEventListener('submit', function(e) {
+        const sel = document.getElementById('patientSelect');
+        if (!sel.value || sel.value === '') {
+            e.preventDefault();
+            alert('Veuillez sélectionner un patient avant de lancer l\'analyse.');
+            return false;
+        }
+        const bdField = document.getElementById('birth_date');
+        if (bdField && !bdField.value && sel.tagName === 'SELECT') {
+            const opt = sel.options[sel.selectedIndex];
+            const b   = opt.getAttribute('data-birth');
+            if (b) { bdField.value = b; document.getElementById('age').value = calculateAge(b); }
+        }
+    });
+
+    {% if current_user.is_doctor() %}
+    const quickModal   = document.getElementById('quickModal');
+    const modalOverlay = document.getElementById('modalOverlay');
+    document.getElementById('quickAddBtn').addEventListener('click', function() {
+        quickModal.classList.add('open'); modalOverlay.classList.add('open');
+        document.getElementById('newPatientName').focus();
+    });
+    function closeQuickModal() {
+        quickModal.classList.remove('open'); modalOverlay.classList.remove('open');
+        document.getElementById('newPatientName').value = '';
+        document.getElementById('newPatientBirth').value = '';
+    }
+    modalOverlay.addEventListener('click', closeQuickModal);
+    function saveQuickPatient() {
+        const name  = document.getElementById('newPatientName').value.trim();
+        const birth = document.getElementById('newPatientBirth').value;
+        if (!name) { alert('Le nom du patient est requis.'); return; }
+        fetch('/quick-add-patient', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ full_name: name, birth_date: birth })
+        }).then(r => r.json()).then(data => {
+            if (data.success) { location.reload(); }
+            else { alert('Erreur : ' + (data.error || 'Impossible de créer le patient')); }
+        }).catch(() => alert('Erreur réseau.'));
+    }
+    {% endif %}
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (patientSelect && patientSelect.tagName === 'SELECT' && patientSelect.value) {
+            const opt   = patientSelect.options[patientSelect.selectedIndex];
+            const birth = opt.getAttribute('data-birth');
+            const age   = calculateAge(birth);
+            if (age) {
+                document.getElementById('age').value        = age;
+                document.getElementById('birth_date').value = birth;
+            }
+        }
+    });
+    </script>
+</body>
+</html>

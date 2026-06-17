@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - Digital Twin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .patient-group {
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .patient-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .risk-high { color: #dc3545; font-weight: bold; }
+        .risk-moderate { color: #ffc107; font-weight: bold; }
+        .risk-low { color: #28a745; font-weight: bold; }
+        .badge-risk {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .badge-high { background: #dc3545; color: white; }
+        .badge-moderate { background: #ffc107; color: #333; }
+        .badge-low { background: #28a745; color: white; }
+        .badge-ecg {
+            background: #17a2b8;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .consultation-row-risk {
+            border-left: 4px solid #3b82f6;
+        }
+        .consultation-row-xray {
+            border-left: 4px solid #7c3aed;
+            background-color: #faf5ff;
+        }
+        .badge-xray {
+            background: #7c3aed;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .filter-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+        }
+        .btn-export {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-export:hover { background: #218838; }
+        .table-doctor {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-doctor th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .table-doctor td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+        .consultation-date {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="/" class="topbar-home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Accueil</a>
+        <span class="topbar-user"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ current_user.name }}</span>
+        <a href="/change-password" class="topbar-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Mot de passe</a>
+        <a href="/logout" class="topbar-link-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Déconnexion</a>
+    </div>
+
+    <div class="container" style="padding-top:20px;">
+        <div class="main-card">
+            <div class="modern-header">
+                <div class="header-content">
+                    <h1>DOCTOR DASHBOARD</h1>
+                    <div class="subtitle">Patient Monitoring & Analytics</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Navigation Tabs -->
+                <div class="modern-tabs">
+                    <button class="tab" onclick="location.href='/'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> RISQUE</button>
+                    <button class="tab" onclick="location.href='/ecg'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="2 12 6 12 8 5 10 19 12 12 14 12"/><line x1="14" y1="12" x2="22" y2="12"/></svg> ECG</button>
+                    <button class="tab" onclick="location.href='/xray'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a5 5 0 0110 0v2"/></svg> RADIOGRAPHIE</button>
+                    <button class="tab tab-active" onclick="location.href='/doctor-dashboard'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> TABLEAU DE BORD</button>
+                </div>
+
+                <!-- Statistiques globales -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card-dash">
+                            <div class="stat-number-dash">{{ stats.total_consultations }}</div>
+                            <div class="stat-label-dash">Total consultations</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card-dash">
+                            <div class="stat-number text-danger">{{ stats.high_risk }}</div>
+                            <div class="stat-label-dash">Patients à risque élevé</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card-dash">
+                            <div class="stat-number-dash">{{ stats.total_ecg }}</div>
+                            <div class="stat-label-dash">Analyses ECG</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card-dash">
+                            <div class="stat-number-dash" style="color:#7c3aed;">{{ stats.total_xray }}</div>
+                            <div class="stat-label-dash">Radios analysées</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card-dash">
+                            <div class="stat-number-dash">{{ stats.unique_patients }}</div>
+                            <div class="stat-label-dash">Patients uniques</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtres -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Filtrer par patient</label>
+                        <select id="patientFilter" class="filter-select" onchange="filterTable()">
+                            <option value="all">Tous les patients</option>
+                            {% for patient in patients_list %}
+                                <option value="{{ patient }}">{{ patient }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filtrer par type</label>
+                        <select id="typeFilter" class="filter-select" onchange="filterTable()">
+                            <option value="all">Tous</option>
+                            <option value="risk">Risque cardiovasculaire</option>
+                            <option value="ecg">Analyse ECG</option>
+                            <option value="xray">Radio cardiaque</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filtrer par niveau</label>
+                        <select id="riskFilter" class="filter-select" onchange="filterTable()">
+                            <option value="all">Tous</option>
+                            <option value="high">Risque élevé (>60%)</option>
+                            <option value="moderate">Risque modéré (30-60%)</option>
+                            <option value="low">Risque faible (<30%)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <button class="btn-export" onclick="exportData()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Liste des patients -->
+                {% if consultations_by_patient|length > 0 %}
+                    {% for patient_name, consultations in consultations_by_patient.items() %}
+                    <div class="patient-group" data-patient="{{ patient_name }}">
+                        <div class="patient-header-dash">
+                            {{ patient_name }}
+                            <span class="float-end" style="display:flex; align-items:center; gap:8px;">
+                                {% set risk_count = consultations|selectattr('type', 'equalto', 'risk')|list|length %}
+                                {% set ecg_count = consultations|selectattr('type', 'equalto', 'ecg')|list|length %}
+                                {% set xray_count = consultations|selectattr('type', 'equalto', 'xray')|list|length %}
+                                <span class="badge bg-primary">{{ risk_count }} risque(s)</span>
+                                <span class="badge bg-info">{{ ecg_count }} ECG</span>
+                                <span class="badge" style="background:#7c3aed; color:white;">{{ xray_count }} radio(s)</span>
+                                <a href="/generate-full-report/{{ patient_name }}"
+                                   class="btn btn-sm"
+                                   style="background:linear-gradient(135deg,#0d9488,#0f766e);color:white;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;"
+                                   title="Télécharger le rapport complet PDF">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Rapport PDF
+                                </a>
+                            </span>
+                        </div>
+                        <div class="p-0">
+                            <table class="table-doctor">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Résultat</th>
+                                        <th>Interprétation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for consultation in consultations|reverse %}
+                                    <tr class="consultation-row-{% if consultation.type == 'risk' %}risk{% elif consultation.type == 'ecg' %}ecg{% else %}xray{% endif %}"
+                                        data-type="{{ consultation.type }}"
+                                        data-risk="{% if consultation.type == 'risk' %}{{ consultation.prediction.probability }}{% else %}0{% endif %}">
+
+                                        <td class="consultation-date-dash">
+                                            {{ consultation.date[:10] }}<br>
+                                            <small>{{ consultation.date[11:16] }}</small>
+                                        </td>
+
+                                        <td>
+                                            {% if consultation.type == 'risk' %}
+                                                <span class="badge-risk" style="background:#3b82f6; color:white;">Risque</span>
+                                            {% elif consultation.type == 'ecg' %}
+                                                <span class="badge-ecg-dash">ECG</span>
+                                            {% else %}
+                                                <span class="badge-xray">Radio</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if consultation.type == 'risk' %}
+                                                <span class="{% if consultation.prediction.probability > 0.6 %}risk-high{% elif consultation.prediction.probability > 0.3 %}risk-moderate{% else %}risk-low{% endif %}">
+                                                    {{ "%.1f"|format(consultation.prediction.probability * 100) }}%
+                                                </span>
+                                            {% elif consultation.type == 'ecg' %}
+                                                <strong>{% if consultation.result and 'class_name' in consultation.result %}{{ consultation.result['class_name'] }}{% else %}ECG{% endif %}</strong>
+                                                <br>
+                                                <small>Confiance: {% if consultation.result and consultation.result is mapping and 'confidence' in consultation.result %}{{ "%.1f"|format(consultation.result['confidence'] * 100) }}{% else %}-{% endif %}%</small>
+                                            {% else %}
+                                                {% if consultation.result is defined and consultation.result.status is defined %}
+                                                    {% if consultation.result.status == 'normal' %}
+                                                        <span style="color:#16a34a; font-weight:600;">Normal</span>
+                                                    {% else %}
+                                                        <span style="color:#dc2626; font-weight:600;">Anomalie</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span>Radio analysée</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if consultation.type == 'risk' %}
+                                                <span class="badge-risk
+                                                    {% if consultation.prediction.probability > 0.6 %}badge-high
+                                                    {% elif consultation.prediction.probability > 0.3 %}badge-moderate
+                                                    {% else %}badge-low{% endif %}">
+                                                    {{ consultation.prediction.risk_level }}
+                                                </span>
+                                            {% elif consultation.type == 'ecg' %}
+                                                <span class="badge-ecg-dash">
+                                                    {% if consultation.result and 'class_name' in consultation.result %}{{ consultation.result['class_name'] }}{% else %}ECG{% endif %}
+                                                </span>
+                                            {% else %}
+                                                {% if consultation.result is defined and consultation.result.status is defined %}
+                                                    <span class="badge-xray">
+                                                        {% if consultation.result.status == 'normal' %}Normal{% else %}Anomalie{% endif %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge-xray">Radio</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data-dash">
+                        <h5>Aucune consultation pour le moment</h5>
+                        <p>Commencez par créer un patient et faire une analyse.</p>
+                        <a href="/" class="btn btn-primary">Analyse risque</a>
+                        <a href="/ecg" class="btn btn-info">Analyse ECG</a>
+                    </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="text-center mt-4">
+                    <a href="/" class="btn btn-primary">Analyse risque</a>
+                    <a href="/ecg" class="btn btn-info">Analyse ECG</a>
+                    <a href="/xray" class="btn btn-info">Radio cardiaque</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterTable() {
+            const selectedPatient = document.getElementById('patientFilter').value;
+            const selectedType = document.getElementById('typeFilter').value;
+            const selectedRisk = document.getElementById('riskFilter').value;
+            const patientGroups = document.querySelectorAll('.patient-group');
+            patientGroups.forEach(group => {
+                let showGroup = false;
+                const rows = group.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    let showRow = true;
+                    const patientName = group.dataset.patient;
+                    if (selectedPatient !== 'all' && patientName !== selectedPatient) showRow = false;
+                    const rowType = row.dataset.type;
+                    if (selectedType !== 'all' && rowType !== selectedType) showRow = false;
+                    if (selectedRisk !== 'all' && rowType === 'risk') {
+                        const risk = parseFloat(row.dataset.risk);
+                        if (selectedRisk === 'high' && risk <= 0.6) showRow = false;
+                        if (selectedRisk === 'moderate' && (risk <= 0.3 || risk > 0.6)) showRow = false;
+                        if (selectedRisk === 'low' && risk > 0.3) showRow = false;
+                    }
+                    row.style.display = showRow ? '' : 'none';
+                    if (showRow) showGroup = true;
+                });
+                group.style.display = showGroup ? '' : 'none';
+            });
+        }
+
+        function exportData() {
+            let csv = "Patient,Date,Type,Résultat,Interprétation\n";
+            {% for patient_name, consultations in consultations_by_patient.items() %}
+                {% for c in consultations %}
+                    {% if c.type == 'risk' %}
+                        csv += `"{{ patient_name }}","{{ c.date[:10] }}","Risque","{{ "%.2f"|format(c.prediction.probability * 100) }}%","{{ c.prediction.risk_level }}"\n`;
+                    {% elif c.type == 'ecg' %}
+                        csv += `"{{ patient_name }}","{{ c.date[:10] }}","ECG","{% if c.result and 'class_name' in c.result %}{{ c.result['class_name'] }}{% else %}-{% endif %}","-"\n`;
+                    {% else %}
+                        csv += `"{{ patient_name }}","{{ c.date[:10] }}","Radio","{% if c.result and 'status' in c.result %}{{ c.result['status'] }}{% else %}-{% endif %}","-"\n`;
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `consultations_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('Export CSV terminé !');
+        }
+    </script>
+</body>
+</html>
